@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 import uuid
 from sqlalchemy.orm import relationship
 from .base import SQLAlchemyBase
-
+from pydantic import BaseModel
 
 
 
@@ -31,4 +31,6 @@ class DataChunk(SQLAlchemyBase):
     project = relationship("Project", back_populates="chunks" )
     asset = relationship("Asset", back_populates="chunks" )
 
-
+class RetrievedDocuement(BaseModel):
+    text: str
+    score: float

@@ -1,3 +1,5 @@
+___ questions___
+
 => depend on my db or app db 
 => if 2 db , how can I read the new data and ansure sync 
 
@@ -5,4 +7,24 @@
 
 => format user input to get json object , filter based on nearet location and price  
 => I have many tables I need to retrieve th data from (places, reviews , travel tips )
-=> splitter
+=> splitter Done 
+
+
+___thoughts___
+
+=> I think all types of user's queries need to access the same data so you don't need to speret between them as chuncks and we can store them in the same place in chunks table 
+=> but for different queries i think I will have different templates of prompt 
+=> RAG Arch is hybrid that is main I have to apply contrains and use NER to extract the entities that i will write the sql queries based on it 
+=> contrains is (price or budget , government , )
+=> I need to add the data that in gemini to db
+=> I need when I chuncking data i retrive the content from db not from conent file 
+=> I can work now with just json object and then when I have data in tables I will add constrain based search and consider that I will need to update the old chuncks to include the new attributes like (governements or description ) so you can reset the chuncks and add this attributes 
+=> why I need contrains search? for example consider If a user says "Show me museums under $20," a vector search might find "expensive museums" because the word "museum" is semantically similar
+=> I need to know how I will know there is new data addded to places tables or review so I need to chunck it and add to chuncks table -> may I will expose api will be called when insert data in the app and take the values and insert it to my bd and in my code I will call function chunk the data to chunks and add it 
+=> for now I just pass the question and test and then make these improvements 
+
+
+___ ToDo _____
+
+
+-> I need to rewrite process file in process service 
