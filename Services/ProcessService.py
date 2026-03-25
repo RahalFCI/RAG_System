@@ -26,9 +26,9 @@ class ProcessService(BaseService):
         if file_extension == ".json":
             return JSONLoader(file_path=file_path, jq_schema=self._infer_json_jq_schema(file_path), text_content=False)
         if file_extension == ".pdf":
-            return PyMuPDFLoader(file_path)
+            return PyMuPDFLoader(file_path=file_path)
         if file_extension in [".txt", ".md", ".csv"]:
-            return TextLoader(file_path, encoding="utf-8")
+            return TextLoader(file_path=file_path, encoding="utf-8")
 
         return None
 
@@ -116,7 +116,7 @@ class ProcessService(BaseService):
         file_id: str,
         chunk_size: int,
         overlap_size: int,
-    ) -> Tuple[List[str], List[dict]]:
+    ):
         texts: List[str] = []
         metadatas: List[dict] = []
 
