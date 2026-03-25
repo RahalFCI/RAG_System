@@ -3,7 +3,7 @@ ___ questions___
 => depend on my db or app db 
 => if 2 db , how can I read the new data and ansure sync 
 
-=> Do I need langrach 
+=> Do I need langragh 
 
 => format user input to get json object , filter based on nearet location and price  
 => I have many tables I need to retrieve th data from (places, reviews , travel tips )
@@ -29,3 +29,4 @@ ___ ToDo _____
 
 
 -> I need to rewrite process file in process service 
+
