@@ -13,7 +13,8 @@ class projectRepo(BaseRepo):
         super().__init__(db_client = db_client)
         self.db_client = db_client
         self.logger = logging.getLogger("uvicorn")
-
+    
+    
     @classmethod
     async def create_instance(cls, db_client: object):
         instance = cls(db_client)

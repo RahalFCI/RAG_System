@@ -22,6 +22,7 @@ ___thoughts___
 => why I need contrains search? for example consider If a user says "Show me museums under $20," a vector search might find "expensive museums" because the word "museum" is semantically similar
 => I need to know how I will know there is new data addded to places tables or review so I need to chunck it and add to chuncks table -> may I will expose api will be called when insert data in the app and take the values and insert it to my bd and in my code I will call function chunk the data to chunks and add it 
 => for now I just pass the question and test and then make these improvements 
+=> 
 
 
 ___ ToDo _____
