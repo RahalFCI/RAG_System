@@ -18,7 +18,7 @@ world data before generating recommendations.
 
 | Layer | Technology |
 | :--- | :--- |
-| **backend** | FastAPI | PostgreSQL | pgvector | SQLAlchemy 
+| **backend** | FastAPI, docker, PostgreSQL, SQLAlchemy
 | **LLM** | Local LLm using ollama 
 | **Vector Database** | pgvector |
 | **Embedding Model** | OpenAI `text-embedding-3-small` |
