@@ -7,20 +7,19 @@ destinations, flight schedules, and local attractions. Unlike standard AI planne
 might hallucinate non-existent flights or closed attractions, this system retrieves real-
 world data before generating recommendations.
 
-#Key Features
-Context-Aware Retrieval: Queries a vector database (ChromaDB/Pinecone) to
-find the most relevant destination data.
-✓
+## 🚀 Key Features
 
-Dynamic Itinerary Synthesis: Generates multi-day plans based on user
-preferences, budget, and travel dates.
-✓
+* **Fact-Based Itineraries:** Unlike standard LLMs, this system retrieves actual data from a vector database to prevent suggesting non-existent places or closed attractions.
+* **Contextual Personalization:** Tailors trips based on specific user constraints like budget, dietary restrictions (e.g., "vegan-friendly"), and accessibility needs.
+* **Semantic Search:** Uses vector embeddings to find destinations that match the *vibe* of your query (e.g., "hidden gems with a bohemian feel").
+* **Source Transparency:** Provides references to the original travel blogs or official guides used to generate the plan.
 
-Constraint Satisfaction: Automatically filters options based on "must-have"
-requirements (e.g., wheelchair accessibility, vegan-friendly, kid-friendly).
-✓
+## 🛠️ Tech Stack
 
-Source Attribution: Provides links or references to the original travel blogs or
-official guides used to build the plan.
-
+| Layer | Technology |
+| :--- | :--- |
+| **backend** | FastAPI | PostgreSQL | pgvector | SQLAlchemy 
+| **LLM** | Local LLm using ollama 
+| **Vector Database** | pgvector |
+| **Embedding Model** | OpenAI `text-embedding-3-small` |
 
