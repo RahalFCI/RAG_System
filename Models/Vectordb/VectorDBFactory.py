@@ -1,6 +1,8 @@
 from .PGVectorProvider import  PGVectorProvider
 from .VectorDBEnums import VectorDBEnums
 from ...Services import BaseService
+from ...Controllers import BaseController
+from ...Controllers.BaseController import BaseController
 from sqlalchemy.orm import sessionmaker
 
 class VectorDBProviderFactory:

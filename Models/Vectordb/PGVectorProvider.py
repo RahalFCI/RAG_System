@@ -14,10 +14,10 @@ class PGVectorProvider(VectorDBInterface):
         self.default_vector_size = default_vector_size
         self.distance_method = distance_method
         self.index_threshold = index_threshold
-        if self.distance_method == DistanceMethodEnums.COSINE:
-            self.distance_method= PgVectorDistanceMethodEnums.COSINE
-        elif self.distance_method == DistanceMethodEnums.DOT:
-            self.distance_method = PgVectorDistanceMethodEnums.DOT
+        if self.distance_method == DistanceMethodEnums.COSINE.value:
+            self.distance_method = PgVectorDistanceMethodEnums.COSINE.value
+        elif self.distance_method == DistanceMethodEnums.DOT.value:
+            self.distance_method = PgVectorDistanceMethodEnums.DOT.value
         else :
             self.distance_method=None
         self.pgvector_table_prefix = PgVectorTableSchemeEnums._PREFIX.value
@@ -27,11 +27,11 @@ class PGVectorProvider(VectorDBInterface):
     async def connect(self):
         async with self.db_client() as session:
             try: 
-                result = await session.execute("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+                result = await session.execute(sql_text("SELECT 1 FROM pg_extension WHERE extname = 'vector'"))
                 extension_exists = result.scalar_one_or_none() 
                 if not extension_exists:
                     self.logger.info("pgvector extension not found, creating it now...")
-                    await session.execute("CREATE EXTENSION vector")
+                    await session.execute(sql_text("CREATE EXTENSION IF NOT EXISTS vector"))
                     await session.commit()
                     self.logger.info("pgvector extension created successfully.")
                 else:
@@ -50,6 +50,9 @@ class PGVectorProvider(VectorDBInterface):
                 record = results.scalar_one_or_none()
 
         return record
+
+    async def is_collection_existed(self, collection_name: str) -> bool:
+        return await self.is_collection_exists(collection_name=collection_name)
     async def list_all_collections(self) -> list:
         records = []
         async with self.db_client() as session:
@@ -168,6 +171,9 @@ class PGVectorProvider(VectorDBInterface):
                 await session.execute(create_idx_sql)
 
                 self.logger.info(f"END: Created vector index for collection: {collection_name}")
+                return True
+
+            return False
 
     async def reset_vector_index(self, collection_name: str, 
                                        index_type: str = PgVectorIndexTypeEnums.HNSW.value) -> bool:

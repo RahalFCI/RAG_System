@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
+
 from .Models.Vectordb.VectorDBFactory import VectorDBProviderFactory
 from .Services.LLM.LLMProviderFactory import LLMProviderFactory
 from .Services.LLM.Templates.template_parser import TemplateParser
 
 
-from RAG_System.Controllers import base, data, nlp
+from RAG_System.Controllers import base, data, nlp,maps
 from RAG_System.helpers.Config import get_settings
 
 
@@ -18,9 +19,10 @@ app = FastAPI()
 
 async def startup_span():
     settings = get_settings()
-    connection = f"postgresql://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
+    connection = f"postgresql+asyncpg://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_MAIN_DATABASE}"
     app.db_engine = create_async_engine(connection)
     app.db_sessionmaker = sessionmaker(app.db_engine, expire_on_commit=False, class_=AsyncSession)
+    app.db_client = app.db_sessionmaker
     
     llm_provider_factory = LLMProviderFactory(settings)
     vectordb_provider_factory = VectorDBProviderFactory(config=settings, db_client=app.db_client)
@@ -55,5 +57,5 @@ app.on_event("shutdown")(shutdown_span)
 
 
 app.include_router(base.base_router)
-app.include_router(data.data_router)
+app.include_router(maps.maps_router)
 app.include_router(nlp.nlp_router)
