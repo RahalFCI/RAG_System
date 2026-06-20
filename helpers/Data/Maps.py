@@ -226,5 +226,6 @@ class MapsDataProvider:
             'review_count': place_details.get('user_ratings_total', 0),
             'opening_hours': place_details.get('opening_hours'),
             'types': place_details.get('types', []),
-            'description': place_details.get('editorial_summary', {}).get('overview', '')
+            'description': place_details.get('editorial_summary', {}).get('overview', ''),
+            'reviews': place_details.get('reviews', [])
         }
