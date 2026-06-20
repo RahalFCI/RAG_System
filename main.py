@@ -1,3 +1,5 @@
+import logging
+import sys
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
@@ -16,6 +18,11 @@ from RAG_System.helpers.Config import get_settings
 
 
 app = FastAPI()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s:\t  %(name)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)] # Forces output to the terminal screen
+)
 
 async def startup_span():
     settings = get_settings()

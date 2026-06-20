@@ -105,6 +105,7 @@ class MapsSyncService:
             for maps_vendor in maps_vendors:
                 # Create VendorProfile model instance
                 vendor = VendorProfile(
+                    Maps_id=maps_vendor.get('place_id', ''),
                     name=maps_vendor.get('name', ''),
                     government=government,
                     address=maps_vendor.get('address', ''),
@@ -154,6 +155,7 @@ class MapsSyncService:
             review_repo = await VendorReviewRepo.create_instance(self.db_client)
             
             for maps_review in maps_reviews:
+                logger.info(f"Syncing review by {maps_review.get('author', 'Anonymous')} for vendor {vendor_id}")   
                 review = VendorReview(
                     vendor_id=vendor_id,
                     author=maps_review.get('author', 'Anonymous'),
@@ -254,3 +256,16 @@ class MapsSyncService:
         if latitude and longitude:
             return f"https://maps.google.com/?q={latitude},{longitude}"
         return ""
+    
+    async def sync_all_vendor_reviews(self): 
+        # sync reviews for all vendors in the database
+        try:
+            vendor_repo = await VendorRepo.create_instance(self.db_client)
+            all_vendors = await vendor_repo.get_all_vendors()
+            
+            for vendor in all_vendors:
+                await self._sync_vendor_reviews(vendor.Maps_id, vendor.id)
+            
+            logger.info(f"Synced reviews for {len(all_vendors)} vendors")
+        except Exception as e:
+            logger.error(f"Error syncing all vendor reviews: {str(e)}")

@@ -9,6 +9,7 @@ class VendorProfile(SQLAlchemyBase):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     account_id = Column(UUID(as_uuid=True), nullable=True, index=True, comment="Foreign key to the accounts table.")
+    Maps_id = Column(String, nullable=True, comment="Google Maps Place ID for the vendor.")
     country = Column(String, nullable=True)
     address = Column(String, nullable=True)
     name = Column(String, nullable=False)

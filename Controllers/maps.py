@@ -95,6 +95,29 @@ async def sync_vendors(
     except Exception as e:
         logger.error(f"Error syncing vendors: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+@maps_router.post("/sync-vendor-reviews") #sync reviews for all vendors in the database
+async def sync_vendor_reviews(request:Request,  app_settings: Settings = Depends(get_settings)):
+    """
+    Sync reviews for all vendors in the database.
+    
+    Example: /api/v1/maps/sync-vendor-reviews
+    """
+    try:
+        service = get_maps_sync_service(request, app_settings)
+        
+        synced_reviews_count = await service.sync_all_vendor_reviews()
+        
+        return {
+            "status": "success",
+            "message": f"Synced reviews for {synced_reviews_count} vendors",
+            "count": synced_reviews_count
+        }
+    except Exception as e:
+        logger.error(f"Error syncing vendor reviews: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @maps_router.post("/search-places")
