@@ -1,27 +1,21 @@
 
 from .LLMEnums import LLMEnums
-from .providers import OpenAIProvider, CoHereProvider
+from .Providers.OpenAILLM import OpenAILLM
 
 class LLMProviderFactory:
-    def __init__(self, config: dict):
+    def __init__(self, config):
         self.config = config
 
     def create(self, provider: str):
-        if provider == LLMEnums.OPENAI.value:
-            return OpenAIProvider(
-                api_key = self.config.OPENAI_API_KEY,
-                api_url = self.config.OPENAI_API_URL,
-                default_input_max_characters=self.config.INPUT_DAFAULT_MAX_CHARACTERS,
-                default_generation_max_output_tokens=self.config.GENERATION_DAFAULT_MAX_TOKENS,
-                default_generation_temperature=self.config.GENERATION_DAFAULT_TEMPERATURE
+        provider_upper = str(provider).upper() if provider else ""
+        
+        if provider_upper == LLMEnums.OPENAI.value:
+            return OpenAILLM(
+                api_key=self.config.OPENAI_API_KEY,
+                api_url=self.config.OPENAI_API_URL or "https://api.openai.com/v1",
+                default_input_max_characters=self.config.INPUT_DAFAULT_MAX_CHARACTERS or 1024,
+                default_output_max_tokens=self.config.GENERATION_DAFAULT_MAX_TOKENS or 512,
+                default_temperature=self.config.GENERATION_DAFAULT_TEMPERATURE or 0.1
             )
-
-        if provider == LLMEnums.COHERE.value:
-            return CoHereProvider(
-                api_key = self.config.COHERE_API_KEY,
-                default_input_max_characters=self.config.INPUT_DAFAULT_MAX_CHARACTERS,
-                default_generation_max_output_tokens=self.config.GENERATION_DAFAULT_MAX_TOKENS,
-                default_generation_temperature=self.config.GENERATION_DAFAULT_TEMPERATURE
-            )
-
-        return None
+        
+        raise ValueError(f"Unsupported LLM provider: {provider}")

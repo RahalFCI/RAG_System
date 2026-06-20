@@ -1,3 +1,4 @@
+import importlib
 import os
 
 class TemplateParser:
@@ -13,6 +14,7 @@ class TemplateParser:
     def set_language(self, language: str):
         if not language:
             self.language = self.default_language
+            return
 
         language_path = os.path.join(self.current_path, "locales", language)
         if os.path.exists(language_path):
@@ -20,9 +22,11 @@ class TemplateParser:
         else:
             self.language = self.default_language
 
-    def get(self, group: str, key: str, vars: dict={}):
+    def get(self, group: str, key: str, vars: dict=None):
         if not group or not key:
             return None
+        if vars is None:
+            vars = {}
         
         group_path = os.path.join(self.current_path, "locales", self.language, f"{group}.py" )
         targeted_language = self.language
@@ -33,8 +37,8 @@ class TemplateParser:
         if not os.path.exists(group_path):
             return None
         
-        # import group module
-        module = __import__(f"stores.llm.templates.locales.{targeted_language}.{group}", fromlist=[group])
+        module_path = f"RAG_System.Services.LLM.Templates.locales.{targeted_language}.{group}"
+        module = importlib.import_module(module_path)
 
         if not module:
             return None

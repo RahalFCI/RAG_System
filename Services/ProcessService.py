@@ -2,10 +2,9 @@ from .BaseService import BaseService
 from .ProjectService import ProjectService
 import os
 import json
-from langchain_community.document_loaders import TextLoader
-from langchain_community.document_loaders import PyMuPDFLoader
-from langchain_community.document_loaders import JSONLoader
-from fastapi import UploadFile
+import csv
+import importlib
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 
@@ -23,12 +22,8 @@ class ProcessService(BaseService):
         file_path = file_id if os.path.isabs(file_id) else os.path.join(self.project_path, file_id)
         file_extension = self.get_file_extension(file_id).lower()
 
-        if file_extension == ".json":
-            return JSONLoader(file_path=file_path, jq_schema=self._infer_json_jq_schema(file_path), text_content=False)
-        if file_extension == ".pdf":
-            return PyMuPDFLoader(file_path=file_path)
-        if file_extension in [".txt", ".md", ".csv"]:
-            return TextLoader(file_path=file_path, encoding="utf-8")
+        if file_extension in [".json", ".pdf", ".txt", ".md", ".csv"]:
+            return file_path
 
         return None
 
@@ -36,7 +31,34 @@ class ProcessService(BaseService):
     def get_file_content(self, file_id: str):
         loader = self.get_file_loader(file_id)
         if loader:
-            return loader.load()
+            file_path = Path(loader)
+            file_extension = file_path.suffix.lower()
+
+            if file_extension == ".json":
+                with file_path.open("r", encoding="utf-8") as json_file:
+                    payload = json.load(json_file)
+                return [payload]
+
+            if file_extension in [".txt", ".md"]:
+                with file_path.open("r", encoding="utf-8") as text_file:
+                    return [text_file.read()]
+
+            if file_extension == ".csv":
+                with file_path.open("r", encoding="utf-8", newline="") as csv_file:
+                    reader = csv.DictReader(csv_file)
+                    return list(reader)
+
+            if file_extension == ".pdf":
+                try:
+                    fitz_module = importlib.import_module("fitz")
+                except Exception:
+                    return None
+
+                documents = []
+                pdf_document = fitz_module.open(str(file_path))
+                for page in pdf_document:
+                    documents.append(page.get_text())
+                return documents
              
         return None
 

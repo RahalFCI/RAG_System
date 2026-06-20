@@ -1,4 +1,4 @@
-from helpers.Config import get_settings
+from RAG_System.helpers.Config import get_settings
 
 class BaseRepo:
     def __init__(self, db_client: object):

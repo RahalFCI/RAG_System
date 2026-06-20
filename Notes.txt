@@ -1,7 +1,7 @@
 ___ questions___
 
 => depend on my db or app db 
-=> if 2 db , how can I read the new data and ansure sync 
+=> if 2 db , how can I read the new data and ansure sync (done)
 
 => Do I need langragh 
 
@@ -22,11 +22,24 @@ ___thoughts___
 => why I need contrains search? for example consider If a user says "Show me museums under $20," a vector search might find "expensive museums" because the word "museum" is semantically similar
 => I need to know how I will know there is new data addded to places tables or review so I need to chunck it and add to chuncks table -> may I will expose api will be called when insert data in the app and take the values and insert it to my bd and in my code I will call function chunk the data to chunks and add it 
 => for now I just pass the question and test and then make these improvements 
-=> 
+=>    in plqaces model I think I need to add here an attribute to carry the earea of this place like october of maadi so when the user enter that he needs places that in maddi or october the llm can see this field so it can filter the places based on that and give more accurate results
+=> I think I neeed to add user model to get the results related to preferences  but what may be needed in user model to add ? and may be needed for better user experiance 
 
+=> explamples of queries : what places neer to me I am  on maddi? so by NER I will extract maddi and do filter contains by area and I have contrans like price? low hight mediam
+=> when user asks i need to get all chunks that are places and vendors and their reviews that ralted to questions so how i can make that so the rewires has metagdata that link that review to that place or vendor  
 
+1. Why Hybrid RAG is the Superior Option
+Standard RAG relies entirely on Semantic Search (vector embeddings). While great for "vibes," it is notoriously bad at handling specific keywords or locations.
+
+The Problem with Standard RAG: If a user asks for "Cafes in Maadi," a standard vector search might return a "Cafe in October" because the "concept" of a cafe is semantically similar, even though the location is wrong.
+
+The Hybrid Solution: By combining Keyword/Metadata filtering with Vector Search, you ensure that the search space is narrowed down to the correct "hard" constraints (the location) before the "soft" constraints (the intent) are applied.
 ___ ToDo _____
 
 
 -> I need to rewrite process file in process service 
+=> get data from maps 
+=> write routes 
+=> local llm 
+
 

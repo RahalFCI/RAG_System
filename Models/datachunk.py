@@ -31,6 +31,6 @@ class DataChunk(SQLAlchemyBase):
     project = relationship("Project", back_populates="chunks" )
     asset = relationship("Asset", back_populates="chunks" )
 
-class RetrievedDocuement(BaseModel):
+class RetrievedDocument(BaseModel):
     text: str
     score: float

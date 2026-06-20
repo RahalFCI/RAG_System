@@ -1,12 +1,9 @@
 import logging
-from typing import List,Union
-from urllib import response
+from typing import List, Union, Optional
 
 from openai import OpenAI
-from ..LLMEnums import OpenAIEnums
-
-
-from ..LLMInterfac import LLMInterface
+from ..LLMEnums import OpenAIEnums, LLMEnums
+from ..LLMInterface import LLMInterface
 
 
 class OpenAILLM(LLMInterface):
