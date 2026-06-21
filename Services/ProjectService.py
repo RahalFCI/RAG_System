@@ -5,7 +5,7 @@ class ProjectService(BaseService):
     def __init__(self):
         super().__init__()
 
-    def get_project_path(self, project_id: str):
+    def get_project_path(self, project_id: int):
         project_dir = os.path.join(
             self.files_dir,
             str(project_id)

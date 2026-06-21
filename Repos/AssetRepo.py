@@ -23,7 +23,7 @@ class AssetRepo(BaseRepo):
             await session.refresh(asset)
         return asset
 
-    async def get_all_project_assets(self, asset_project_id: str, asset_type: str):
+    async def get_all_project_assets(self, asset_project_id: int, asset_type: str):
 
         async with self.db_client() as session:
             stmt = select(Asset).where(

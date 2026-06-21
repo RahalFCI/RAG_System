@@ -31,10 +31,10 @@ class NLPController(BaseController):
     def process_text(self, text):
         return str(text or "")[: self.app_settings.INPUT_DAFAULT_MAX_CHARACTERS or 1024].strip()
 
-    def create_collection_name(self, project_id: str):
+    def create_collection_name(self, project_id: int):
         return f"collection_{self.vectordb_client.default_vector_size}_{project_id}".strip()
 
-    async def ensure_project(self, project_id: str):
+    async def ensure_project(self, project_id: int):
         project_repo = await projectRepo.create_instance(self.db_client)
         return await project_repo.get_project_or_create_one(project_id=project_id)
 
@@ -172,7 +172,7 @@ class NLPController(BaseController):
 
     async def create_chunks_from_maps_db(
         self,
-        project_id: str,
+        project_id: int,
         chunk_size: int = 220,
         overlap_size: int = 30,
         top_n_reviews: int = 3,
@@ -235,10 +235,38 @@ class NLPController(BaseController):
         )
         return True
 
+
+    async def vectorize_project_data(self, project_id: int):
+        project = await self.ensure_project(project_id=project_id)
+        chunk_repo = await ChunkRepo.create_instance(self.db_client)
+        chunks = await chunk_repo.get_poject_chunks(project_id=project.project_id,page_no=1,page_size=1000)
+        if not chunks:
+            return False
+
+        collection_name = self.create_collection_name(project_id=project.project_id)
+        texts = [chunk.chunk_text for chunk in chunks]
+        metadatas = [chunk.chunk_metadata for chunk in chunks]
+        vectors = await self.embedding_client.get_embeddings(texts=texts, document_type=DocumentTypeEnum.DOCUMENT.value)
+
+        await self.vectordb_client.create_collection(
+            collection_name=collection_name,
+            embedding_size=self.embedding_client.embedding_size,
+            do_reset=True,
+        )
+
+        await self.vectordb_client.insert_many(
+            collection_name=collection_name,
+            texts=texts,
+            metadata=metadatas,
+            vectors=vectors,
+            record_ids=[chunk.chunk_id for chunk in chunks],
+        )
+        return True
+
     async def build_and_index_maps_data(
         self,
-        project_id: str,
-        chunk_size: int = 220,
+        project_id: int,
+        chunk_size: int = 520,
         overlap_size: int = 30,
         top_n_reviews: int = 3,
         do_reset: bool = False,
@@ -301,4 +329,6 @@ class NLPController(BaseController):
         chat_history = [self.generation_client.construct_prompt(prompt=system_prompt, role="system")]
         full_prompt = "\n\n".join(["\n".join(documents_prompts), footer_prompt])
         answer = self.generation_client.generate_text(prompt=full_prompt, chat_history=chat_history)
+        logger.info(f"FULL PROMPT SENT TO LLM: {full_prompt}")
+        logger.info(f"RAG question answered for project_id={project.project_id}, query='{query}' -> answer='{answer}'")
         return answer, full_prompt, chat_history
