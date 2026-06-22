@@ -30,8 +30,8 @@ class Settings(BaseSettings):
     VECTOR_DB_PGVEC_INDEX_THRESHOLD: Optional[int] = 100
     VECTOR_DB_DISTANCE_METHOD: Optional[str] = None
 
-    PRIMARY_LANG: str = "en"
-    DEFAULT_LANG: str = "en"
+    PRIMARY_LANG: str = "ar"
+    DEFAULT_LANG: str = "ar"
     GOOGLE_MAPS_API_KEY: Optional[str] = None
     
     # Database Config
