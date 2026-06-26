@@ -25,7 +25,7 @@ def get_nlp_controller(request: Request) -> NLPController:
 @nlp_router.post("/index-maps/{project_id}")
 async def index_maps_data(
     request: Request,
-    project_id: str,
+    project_id: int,
     do_reset: bool = Query(False, description="Reset the collection before indexing"),
     top_n_reviews: int = Query(3, description="Maximum reviews to keep per entity"),
 ):
@@ -44,12 +44,30 @@ async def index_maps_data(
     except Exception as exc:
         logger.error("Error indexing maps data: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+    
+@nlp_router.post("/vectorize/{project_id}")
+async def vectorize_project_data(
+    request: Request,
+    project_id: int,
+):
+    try:
+        controller = get_nlp_controller(request)
+        result = await controller.vectorize_project_data(project_id=project_id)
+        return {
+            "status": "success",
+            "project_id": project_id,
+            "vectorized": bool(result),
+        }
+    except Exception as exc:
+        logger.error("Error vectorizing project data: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
 
 
 @nlp_router.post("/ask/{project_id}")
 async def ask_rag_question(
     request: Request,
-    project_id: str,
+    project_id: int,
     query: str = Query(..., description="User question"),
     limit: int = Query(10, description="Maximum retrieved chunks"),
 ):
@@ -66,8 +84,6 @@ async def ask_rag_question(
             "project_id": project_id,
             "query": query,
             "answer": answer,
-            "prompt": prompt,
-            "chat_history": chat_history,
         }
     except Exception as exc:
         logger.error("Error answering RAG question: %s", exc)

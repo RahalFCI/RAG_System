@@ -21,7 +21,7 @@ class DataService(BaseService):
 
 
 
-    def generate_unique_filepath(self, orig_file_name: str, project_id: str):
+    def generate_unique_filepath(self, orig_file_name: str, project_id: int):
         random_key = self.generate_random_string()
         project_path = ProjectService().get_project_path(project_id=project_id)
 

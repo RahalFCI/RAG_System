@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Tuple
 
 
 class ProcessService(BaseService):
-    def __init__(self,project_id:str):
+    def __init__(self,project_id:int):
         super().__init__()
         self.project_id=project_id
         self.project_path=ProjectService().get_project_path(project_id)
