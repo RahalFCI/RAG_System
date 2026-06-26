@@ -7,7 +7,7 @@ from ..LLMInterface import LLMInterface
 
 
 class OpenAILLM(LLMInterface):
-    def __init__(self, api_key, api_url, default_input_max_characters=1000, default_output_max_tokens=1000, default_temperature=0.1):
+    def __init__(self, api_key, api_url, default_input_max_characters=2048, default_output_max_tokens=2048, default_temperature=0.7):
         self.api_key = api_key
         self.api_url = api_url
         self.default_input_max_characters = default_input_max_characters
@@ -47,6 +47,7 @@ class OpenAILLM(LLMInterface):
         if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
             self.logger.error("No response or choices received from OpenAI API.")
             return None
+        self.logger.info(f"OpenAI API response: {response}")
         return response.choices[0].message.content
     
     def embed_text(self, text:Union[str,List[str]] , document_type: str = None):
@@ -65,6 +66,7 @@ class OpenAILLM(LLMInterface):
         if not response or not response.data or len(response.data) == 0 or not response.data[0].embedding:
             self.logger.error("No response or data received from OpenAI API for embeddings.")
             return None
+        self.logger.debug(f"OpenAI API embeddings response: {response}")
         return [rec.embedding for rec in response.data]
     
 
