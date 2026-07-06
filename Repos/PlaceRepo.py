@@ -1,5 +1,7 @@
+from symtable import Class
+
 from .BaseRepo import BaseRepo
-from RAG_System.Models import Place
+from RAG_System.Models import Place, places_reviews
 from sqlalchemy import select
 import logging
 
@@ -108,3 +110,28 @@ class PlaceRepo(BaseRepo):
         except Exception as e:
             logger.error(f"Error deleting place {place_id}: {str(e)}")
             return False
+
+class PlaceReviewRepo(BaseRepo):
+    """Repository for managing PlaceReview records in database."""
+    
+    def __init__(self, db_client: object):
+        super().__init__(db_client=db_client)
+        self.db_client = db_client
+    
+    @classmethod
+    async def create_instance(cls, db_client: object):
+        instance = cls(db_client)
+        return instance
+    
+    async def create_place_review(self, place_review: places_reviews):
+        """Create a new place review record."""
+        try:
+            async with self.db_client() as session:
+                async with session.begin():
+                    session.add(place_review)
+                await session.commit()
+                await session.refresh(place_review)
+            return place_review
+        except Exception as e:
+            logger.error(f"Error creating place review: {str(e)}")
+            raise

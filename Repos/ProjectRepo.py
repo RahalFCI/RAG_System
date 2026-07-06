@@ -55,3 +55,5 @@ class projectRepo(BaseRepo):
                 result = await session.execute(query)
                 projects = result.scalars().all()
                 return projects, total_pages
+            
+

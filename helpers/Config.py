@@ -5,6 +5,10 @@ class Settings(BaseSettings):
 
     APP_NAME: str
     APP_VERSION: str
+    model_name: str = "gemini-3-flash-preview"
+    api_key: str = "AIzaSyCoVyIzi_SwLvtUdp54hVQzrfEPH3t3P5o"
+  
+
 
     FILE_ALLOWED_TYPES: list
     FILE_MAX_SIZE: int

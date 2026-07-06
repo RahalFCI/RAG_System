@@ -77,6 +77,75 @@ class NLPController(BaseController):
             review_lines.append(f"- {review_author or 'Anonymous'} ({review_rating or 'N/A'}/5): {review_text}")
         return review_lines
 
+    def _limit_words(self, text: str, max_words: int) -> str:
+        words = str(text or "").split()
+        if len(words) <= max_words:
+            return str(text or "").strip()
+        return " ".join(words[:max_words]).strip()
+
+    def _format_source_metadata(self, metadata: dict = None):
+        metadata = metadata or {}
+        source_type = str(metadata.get("source_type") or "unknown").strip()
+        source_id = str(metadata.get("source_id") or "").strip()
+        vendor_id = source_id if source_type.lower() == "vendor" else str(metadata.get("vendor_id") or "").strip()
+        return source_type, source_id, vendor_id
+
+    def _summarize_reviews_for_place(self, place: Place, max_words: int = 150) -> str:
+        review_lines = self._format_reviews(place.reviews, review_text_key="comment")
+        if not review_lines:
+            return "No reviews available."
+
+        reviews_text = "\n".join(review_lines)
+        prompt = (
+            "Summarize the following place reviews into one concise paragraph. "
+            f"Keep the response grounded in the reviews, avoid adding new facts, and stay within {max_words} words.\n\n"
+            f"Reviews:\n{reviews_text}"
+        )
+
+        summary = None
+        if self.generation_client:
+            try:
+                summary = self.generation_client.generate_text(
+                    prompt=prompt,
+                    max_tokens=max_words + 40,
+                    temperature=0.2,
+                )
+            except Exception:
+                logger.exception("Failed to summarize place reviews with the generation client.")
+
+        if not summary:
+            summary = " ".join(review_lines)
+
+        return self._limit_words(summary.strip(), max_words)
+
+    def _summarize_reviews_for_vendor(self, vendor: VendorProfile, max_words: int = 150) -> str:
+        review_lines = self._format_reviews(vendor.reviews, review_text_key="content")
+        if not review_lines:
+            return "No reviews available."
+
+        reviews_text = "\n".join(review_lines)
+        prompt = (
+            "Summarize the following vendor reviews into one concise paragraph. "
+            f"Keep the response grounded in the reviews, avoid adding new facts, and stay within {max_words} words.\n\n"
+            f"Reviews:\n{reviews_text}"
+        )
+
+        summary = None
+        if self.generation_client:
+            try:
+                summary = self.generation_client.generate_text(
+                    prompt=prompt,
+                    max_tokens=max_words + 40,
+                    temperature=0.2,
+                )
+            except Exception:
+                logger.exception("Failed to summarize vendor reviews with the generation client.")
+
+        if not summary:
+            summary = " ".join(review_lines)
+
+        return self._limit_words(summary.strip(), max_words)
+
     def _split_text_with_overlap(self, text: str, chunk_size: int, overlap_size: int) -> List[str]:
         clean_text = str(text or "").strip()
         if not clean_text:
@@ -102,7 +171,7 @@ class NLPController(BaseController):
         return chunks
 
     def _build_place_document(self, place: Place):
-        review_lines = self._format_reviews(place.reviews, review_text_key="comment")
+        review_summary = self._summarize_reviews_for_place(place, max_words=150)
         document_text = (
             f"Type: Place\n"
             f"Name: {place.name}\n"
@@ -111,8 +180,8 @@ class NLPController(BaseController):
             f"Address: {place.address}\n"
             f"Coordinates: {place.lattitude}, {place.longitude}\n"
             f"Description: {place.description}\n\n"
-            f"Recent Reviews:\n"
-            f"{chr(10).join(review_lines) if review_lines else 'No reviews available.'}"
+            f"Review Summary (max 150 words):\n"
+            f"{review_summary}"
         )
         metadata = {
             "source_type": "place",
@@ -124,7 +193,7 @@ class NLPController(BaseController):
         return document_text, metadata
 
     def _build_vendor_document(self, vendor: VendorProfile):
-        review_lines = self._format_reviews(vendor.reviews, review_text_key="content")
+        review_summary = self._summarize_reviews_for_vendor(vendor, max_words=150)
         document_text = (
             f"Type: Vendor\n"
             f"Name: {vendor.name}\n"
@@ -133,8 +202,8 @@ class NLPController(BaseController):
             f"Address: {vendor.address}\n"
             f"Coordinates: {vendor.lattitude}, {vendor.longitude}\n"
             f"Description: {vendor.description}\n\n"
-            f"Recent Reviews:\n"
-            f"{chr(10).join(review_lines) if review_lines else 'No reviews available.'}"
+            f"Review Summary (max 150 words):\n"
+            f"{review_summary}"
         )
         metadata = {
             "source_type": "vendor",
@@ -148,13 +217,17 @@ class NLPController(BaseController):
     async def build_documents_from_maps_db(self, top_n_reviews: int = 3):
         documents = []
         async with self.db_client() as session:
-            place_stmt = select(Place).options(joinedload(Place.reviews))
+            Plast_id = 20
+            place_stmt = select(Place).options(joinedload(Place.reviews)).where(Place.id > Plast_id)
             place_result = await session.execute(place_stmt)
             places = place_result.scalars().unique().all()
 
-            vendor_stmt = select(VendorProfile).options(joinedload(VendorProfile.reviews))
+            Vlast_id = 100
+
+            vendor_stmt = select(VendorProfile).options(joinedload(VendorProfile.reviews)).where(VendorProfile.id > Vlast_id)
+
             vendor_result = await session.execute(vendor_stmt)
-            vendors = vendor_result.scalars().unique().all()
+            vendors = vendor_result.scalars().unique().all() 
 
         for place in places:
             sorted_reviews = sorted(place.reviews or [], key=lambda review: review.rating or 0, reverse=True)[:top_n_reviews]
@@ -314,18 +387,22 @@ class NLPController(BaseController):
         system_prompt = self.template_parser.get("rag", "system_prompt")
         documents_prompts = []
         for idx, doc in enumerate(retrieved_documents):
+            source_type, source_id, vendor_id = self._format_source_metadata(getattr(doc, "metadata", None))
             documents_prompts.append(
                 self.template_parser.get(
                     "rag",
                     "document_prompt",
                     {
                         "doc_num": idx + 1,
+                        "source_type": source_type,
+                        "source_id": source_id,
+                        "vendor_id": vendor_id,
                         "chunk_text": self.generation_client.process_text(doc.text),
                     },
                 )
             )
 
-        footer_prompt = self.template_parser.get("rag", "footer_prompt", {"query": query})
+        footer_prompt = self.template_parser.get("rag", "itinerary_footer_prompt", {"query": query})
         chat_history = [self.generation_client.construct_prompt(prompt=system_prompt, role="system")]
         full_prompt = "\n\n".join(["\n".join(documents_prompts), footer_prompt])
         answer = self.generation_client.generate_text(prompt=full_prompt, chat_history=chat_history)

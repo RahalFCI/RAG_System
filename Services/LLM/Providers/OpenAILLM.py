@@ -41,13 +41,19 @@ class OpenAILLM(LLMInterface):
         response = self.client.chat.completions.create(
             model = self.generation_model_id,
             messages = chat_history,
-            max_tokens = max_tokens,
-            temperature = temperature
+            stream=False,                 # تم تصحيح البارامتر ليكون Boolean صح
+            max_tokens=max_tokens,
+            temperature=temperature,
+            extra_body={                  # أي بارامترات تخص Ollama مباشرة لازم تدخل هنا
+                 "options": {
+                "num_ctx": 32768,     # تكبير الـ Context لحجم المستندات بتاعتك
+                "temperature": temperature  
+        }
+    }
         )
         if not response or not response.choices or len(response.choices) == 0 or not response.choices[0].message:
             self.logger.error("No response or choices received from OpenAI API.")
             return None
-        self.logger.info(f"OpenAI API response: {response}")
         return response.choices[0].message.content
     
     def embed_text(self, text:Union[str,List[str]] , document_type: str = None):

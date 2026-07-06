@@ -7,9 +7,9 @@ from sqlalchemy.orm import sessionmaker
 from .Models.Vectordb.VectorDBFactory import VectorDBProviderFactory
 from .Services.LLM.LLMProviderFactory import LLMProviderFactory
 from .Services.LLM.Templates.template_parser import TemplateParser
+from .Controllers.verifiyChallenge import challenge_router
 
-
-from RAG_System.Controllers import base, data, nlp,maps
+from RAG_System.Controllers import base, data, nlp,maps,verifiyChallenge
 from RAG_System.helpers.Config import get_settings
 
 
@@ -66,3 +66,4 @@ app.on_event("shutdown")(shutdown_span)
 app.include_router(base.base_router)
 app.include_router(maps.maps_router)
 app.include_router(nlp.nlp_router)
+app.include_router(verifiyChallenge.challenge_router)

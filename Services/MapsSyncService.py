@@ -169,7 +169,43 @@ class MapsSyncService:
             
         except Exception as e:
             logger.error(f"Error syncing reviews for vendor {vendor_id}: {str(e)}")
-    
+
+        async def _sync_place_reviews(self, place_id: str, place_record_id: str):
+                """
+                Fetch reviews for a specific place and save to database.
+                
+                Args:
+                    place_id: Google Maps place ID
+                    place_record_id: Local place record ID
+                """
+                try:
+                    # Fetch reviews from Maps API
+                    maps_reviews = self.maps_provider.get_place_reviews(place_id)
+                    
+                    # Initialize repository
+                    review_repo = await VendorReviewRepo.create_instance(self.db_client)
+                    
+                    for maps_review in maps_reviews:
+                        logger.info(f"Syncing review by {maps_review.get('author', 'Anonymous')} for place {place_record_id}")   
+                        review = VendorReview(
+                            vendor_id=place_record_id,
+                            author=maps_review.get('author', 'Anonymous'),
+                            rating=maps_review.get('rating', 0),
+                            content=maps_review.get('text', '')
+                        )
+                        
+                        await review_repo.create_review(review)
+                    
+                    logger.info(f"Synced {len(maps_reviews)} reviews for place {place_record_id}")
+
+                except Exception as e:
+                    logger.error(f"Error syncing reviews for place {place_record_id}: {str(e)}")
+
+
+
+
+
+            
     async def search_and_sync_places(self, query: str, government: str, 
                                     area: str, latitude: float = None,
                                     longitude: float = None) -> List[Place]:
